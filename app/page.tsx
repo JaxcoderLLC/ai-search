@@ -12,9 +12,12 @@ export type Category = {
 export default function Home() {
   const [request, setRequest] = useState<{
     category?: Category;
-    city?: string;
+    location?: string;
+    distance?: string;
+    rating?: string;
   }>({});
-  let [contractors, setContractors] = useState<string>("");
+  const [contractors, setContractors] = useState<string>("");
+  const [locationOption, setLocationOption] = useState<string>("city");
 
   useEffect(() => {
     checkRedirect();
@@ -30,8 +33,8 @@ export default function Home() {
   const [message, setMessage] = useState("");
   async function hitAPI() {
     try {
-      if (!request.city || !request.category) return;
-      setMessage("Searching your area for contractors...");
+      if (!request.location || !request.category) return;
+      setMessage("Searching your area for service providers...");
       setLoading(true);
       setContractors("");
 
@@ -49,7 +52,9 @@ export default function Home() {
         method: "POST",
         body: JSON.stringify({
           category: request.category,
-          city: request.city,
+          location: request.location,
+          distance: request.distance,
+          rating: request.rating,
         }),
       });
       const contractorDataJson = await contractorData.json();
@@ -87,6 +92,30 @@ export default function Home() {
     }
   }
 
+  const locationOptions = [
+    { value: "", label: "Select Location" },
+    { value: "city", label: "City" },
+    { value: "zip code", label: "Zip Code" },
+  ];
+
+  const distanceOptions = [
+    { value: "", label: "Select Distance" },
+    { value: "5", label: "5 Miles" },
+    { value: "10", label: "10 Miles" },
+    { value: "15", label: "15 Miles" },
+    { value: "20", label: "20 Miles" },
+    { value: "25", label: "25 Miles" },
+  ];
+
+  const ratingOptions = [
+    { value: "", label: "Select Rating" },
+    { value: "5", label: "5 Stars" },
+    { value: "4", label: "4 Stars" },
+    { value: "3", label: "3 Stars" },
+    { value: "2", label: "2 Stars" },
+    { value: "1", label: "1 Star" },
+  ];
+
   return (
     <main>
       <div className="app-container">
@@ -94,16 +123,49 @@ export default function Home() {
           Find Me A Contractor
         </h1>
         <div style={styles.formContainer} className="form-container">
+          <select
+            name="location-options"
+            style={styles.input}
+            onChange={(e) => {
+              setLocationOption(e?.target.value || "city");
+              setRequest((request) => ({
+                ...request,
+                location: "",
+              }));
+            }}
+          >
+            {locationOptions.map((option, index) => (
+              <option key={index} value={option.value}>
+                {option.label}
+              </option>
+            ))}
+          </select>
           <input
             style={styles.input}
-            placeholder="City"
+            placeholder={locationOption === "city" ? "City" : "Zip Code"}
             onChange={(e) =>
               setRequest((request) => ({
                 ...request,
-                city: e.target.value,
+                location: e.target.value,
               }))
             }
           />
+          <select
+            name="distance-options"
+            style={styles.input}
+            onChange={(e) => {
+              setRequest((request) => ({
+                ...request,
+                distance: e.target.value,
+              }));
+            }}
+          >
+            {distanceOptions.map((option, index) => (
+              <option key={index} value={option.value}>
+                {option.label}
+              </option>
+            ))}
+          </select>
           <input
             style={styles.input}
             placeholder="Category"
@@ -114,8 +176,24 @@ export default function Home() {
               }))
             }
           />
+          <select
+            name="rating-options"
+            style={styles.input}
+            onChange={(e) => {
+              setRequest((request) => ({
+                ...request,
+                rating: e.target.value,
+              }));
+            }}
+          >
+            {ratingOptions.map((option, index) => (
+              <option key={index} value={option.value}>
+                {option.label}
+              </option>
+            ))}
+          </select>
           <button className="input-button" onClick={hitAPI}>
-            Find Contractor
+            Find Services
           </button>
         </div>
         <div className="results-container">
